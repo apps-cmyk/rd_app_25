@@ -13,7 +13,7 @@ export default function SplashScreen({ navigation }) {
   return (
     <GlobalBackground>
       <View style={styles.container}>
-        <Text style={styles.logo}>NEON CASINO</Text>
+        <Text style={styles.logo}>Noir Casiro</Text>
         <Text style={styles.subtitle}>Social Casino • Play for Fun</Text>
       </View>
     </GlobalBackground>

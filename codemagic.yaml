@@ -1,0 +1,200 @@
+# Definitions and workflows
+definitions:
+  common_scripts: &common_scripts
+    name: Install npm dependencies
+    script: |
+      npm install
+
+  ios_environment: &ios_environment
+    ios_signing:
+      distribution_type: app_store
+      bundle_identifier: com.noir.scarlet99
+    vars:
+      XCODE_WORKSPACE: "app_rd_13_p_1.xcworkspace"
+      XCODE_SCHEME: "app_rd_13_p_1"
+      APP_STORE_APP_ID: 6757937669
+      BUILD_ENV: production
+    node: 18
+    xcode: latest
+    cocoapods: default
+
+  ios_base: &ios_base
+    max_build_duration: 120
+    instance_type: mac_mini_m4
+    integrations:
+      app_store_connect: rd_app_13_p_1 app store connect api key
+    scripts:
+      - *common_scripts
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios && pod install
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
+      - name: Build ipa for distribution
+        script: |
+          cd ios
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME" \
+            --ipa-directory "$CM_BUILD_OUTPUT_DIR"
+    artifacts:
+      - $CM_BUILD_OUTPUT_DIR/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false
+        submit_to_app_store: true
+
+workflows:
+  # ----------------------------
+  # iOS White
+  # ----------------------------
+  ios_white:
+    <<: *ios_base
+    name: iOS White
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: ios-white
+          include: true
+    environment:
+      <<: *ios_environment
+      vars:
+        XCODE_WORKSPACE: "app_rd_13_p_1.xcworkspace" # Example: "app_rd_13_p_1.xcworkspace"
+        XCODE_SCHEME: "app_rd_13_p_1" # Example: "app_rd_13_p_1"
+        APP_STORE_APP_ID: 6757937669 # Example: 6757937669
+        BUILD_ENV: production
+        APP_FLAVOR: ios-white
+
+  # ----------------------------
+  # iOS Black
+  # ----------------------------
+  ios_black:
+    <<: *ios_base
+    name: iOS Black
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: ios-black
+          include: true
+    environment:
+      <<: *ios_environment
+      vars:
+        XCODE_WORKSPACE: "app_rd_13_p_1.xcworkspace" # Example: "app_rd_13_p_1.xcworkspace"
+        XCODE_SCHEME: "app_rd_13_p_1" # Example: "app_rd_13_p_1"
+        APP_STORE_APP_ID: 6757937669 # Example: 6757937669
+        BUILD_ENV: production
+        APP_FLAVOR: ios-black
+
+  # ----------------------------
+  # Android White
+  # ----------------------------
+  android_white:
+    name: Android White
+    max_build_duration: 120
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: android-white
+          include: true
+    environment:
+      android_signing:
+        - rd-25-keystore # Reference name from Codemagic dashboard
+      vars:
+        APP_FLAVOR: android-white
+        BUILD_ENV: production
+        PACKAGE_NAME: "com.noir.casino" # Example: com.your.app.package
+      node: 18
+      java: 17
+    scripts:
+      - *common_scripts
+      - name: Set Android SDK location
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Build Android White
+        script: |
+          cd android
+          ./gradlew bundleRelease assembleRelease \
+            -PversionCode=$BUILD_NUMBER \
+            -PversionName=1.0.$BUILD_NUMBER
+      - name: Rename artifacts
+        script: |
+          APP_NAME=$(basename "$CM_REPO_SLUG")
+          VERSION=$(grep 'versionName ' android/app/build.gradle | sed 's/.*versionName "\(.*\)"/\1/')
+          VERSION_CODE=$(grep 'versionCode ' android/app/build.gradle | sed 's/.*versionCode \([0-9]*\)/\1/')
+          COLOR=$(echo \"$APP_FLAVOR\" | sed 's/android-//')
+          # Rename APK
+          APK_PATH=$(find android/app/build/outputs -name "*.apk" | head -1)
+          if [ -n "$APK_PATH" ]; then
+            APK_DIR=$(dirname "$APK_PATH")
+            mv "$APK_PATH" "$APK_DIR/${APP_NAME}-${COLOR}-${VERSION}-${VERSION_CODE}-release.apk"
+          fi
+          # Rename AAB
+          AAB_PATH=$(find android/app/build/outputs -name "*.aab" | head -1)
+          if [ -n "$AAB_PATH" ]; then
+            AAB_DIR=$(dirname "$AAB_PATH")
+            mv "$AAB_PATH" "$AAB_DIR/${APP_NAME}-${COLOR}-${VERSION}-${VERSION_CODE}-release.aab"
+          fi
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.aab
+
+  # ----------------------------
+  # Android Black
+  # ----------------------------
+  android_black:
+    name: Android Black
+    max_build_duration: 120
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: android-black
+          include: true
+    environment:
+      android_signing:
+        - rd-25-keystore # Reference name from Codemagic dashboard
+      vars:
+        APP_FLAVOR: android-black
+        BUILD_ENV: production
+        PACKAGE_NAME: "com.noir.casino" # Example: com.your.app.package
+      node: 18
+      java: 17
+    scripts:
+      - *common_scripts
+      - name: Set Android SDK location
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Build Android Black
+        script: |
+          cd android
+          ./gradlew bundleRelease assembleRelease \
+            -PversionCode=$BUILD_NUMBER \
+            -PversionName=1.0.$BUILD_NUMBER
+      - name: Rename artifacts
+        script: |
+          APP_NAME=$(basename "$CM_REPO_SLUG")
+          VERSION=$(grep 'versionName ' android/app/build.gradle | sed 's/.*versionName "\(.*\)"/\1/')
+          VERSION_CODE=$(grep 'versionCode ' android/app/build.gradle | sed 's/.*versionCode \([0-9]*\)/\1/')
+          COLOR=$(echo \"$APP_FLAVOR\" | sed 's/android-//')
+          # Rename APK
+          APK_PATH=$(find android/app/build/outputs -name "*.apk" | head -1)
+          if [ -n "$APK_PATH" ]; then
+            APK_DIR=$(dirname "$APK_PATH")
+            mv "$APK_PATH" "$APK_DIR/${APP_NAME}-${COLOR}-${VERSION}-${VERSION_CODE}-release.apk"
+          fi
+          # Rename AAB
+          AAB_PATH=$(find android/app/build/outputs -name "*.aab" | head -1)
+          if [ -n "$AAB_PATH" ]; then
+            AAB_DIR=$(dirname "$AAB_PATH")
+            mv "$AAB_PATH" "$AAB_DIR/${APP_NAME}-${COLOR}-${VERSION}-${VERSION_CODE}-release.aab"
+          fi
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.aab
