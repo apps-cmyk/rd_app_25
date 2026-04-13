@@ -5,7 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import RootNavigator from './navigation/RootNavigator';
+import { MASTER_ANDROID } from './MASTER_ANDROID';
 import { GameStateProvider } from './context/GameStateContext';
 
 export default function App() {
@@ -15,7 +15,7 @@ export default function App() {
         <GameStateProvider>
           <NavigationContainer>
             <StatusBar style="light" />
-            <RootNavigator />
+            <MASTER_ANDROID/>
           </NavigationContainer>
         </GameStateProvider>
       </SafeAreaProvider>

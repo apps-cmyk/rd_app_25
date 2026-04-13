@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "Noir Casiro",
-    "slug": "Noir Casiro",
+    "name": "Noir Casino",
+    "slug": "Noir Casino",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/iconw.jpg",
+    "icon": "./assets/icon_black.jpg",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/iconw.jpg",
+      "image": "./assets/icon_black.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#050016"
     },
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/iconw.jpg",
+        "foregroundImage": "./assets/icon_black.jpg",
         "backgroundColor": "#050016"
       },
       "package": "com.noir.casino"
