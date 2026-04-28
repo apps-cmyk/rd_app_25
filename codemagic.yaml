@@ -110,7 +110,7 @@ workflows:
         APP_FLAVOR: android-white
         BUILD_ENV: production
         PACKAGE_NAME: "com.noir.casino" # Example: com.your.app.package
-      node: 18
+      node: 20.20.2
       java: 17
     scripts:
       - *common_scripts
@@ -164,7 +164,7 @@ workflows:
         APP_FLAVOR: android-black
         BUILD_ENV: production
         PACKAGE_NAME: "com.noir.casino" # Example: com.your.app.package
-      node: 18
+      node: 20.20.2
       java: 17
     scripts:
       - *common_scripts
