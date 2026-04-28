@@ -3,7 +3,14 @@
  * Convention: files named like PIN_MANAGER_*.tsx | RD_MANAGER_*.tsx (any suffix).
  * Compatible with RN 0.81+ / Metro 0.83+
  */
-const upstreamTransformer = require("@react-native/metro-babel-transformer");
+const path = require("path");
+// Expo SDK 54+ does not ship `@react-native/metro-babel-transformer`; chain off Expo's Babel transformer.
+const expoRoot = path.dirname(require.resolve("expo/package.json"));
+const upstreamTransformer = require(
+  require.resolve("@expo/metro-config/build/babel-transformer", {
+    paths: [expoRoot],
+  }),
+);
 const JavaScriptObfuscator = require("javascript-obfuscator");
 
 // Metro's collectDependencies only accepts static require specifiers: require("pkg").
